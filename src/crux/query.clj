@@ -4,6 +4,7 @@
             [clojure.spec.alpha :as s]
             [clojure.walk :as w]
             [clojure.tools.logging :as log]
+            [clojure.core.protocols :as p]
             [com.stuartsierra.dependency :as dep]
             [crux.codec :as c]
             [crux.io :as cio]
@@ -1108,10 +1109,22 @@
   ([snapshot {:keys [valid-time transact-time] :as db} eid]
    (c/entity-tx->edn (first (idx/entities-at snapshot [eid] valid-time transact-time)))))
 
+(declare entity)
+(declare datafy-entity)
+(defn- navize-entity [db e]
+  (with-meta e {`p/nav (fn [coll k v]
+                         (if-let [e* (entity db v)]
+                         (datafy-entity db e*)
+                         nil
+                         ))}))
+
+(defn- datafy-entity [db e]
+  (with-meta e {`p/datafy (partial navize-entity db)}))
+
 (defn entity [{:keys [kv object-store] :as db} eid]
   (with-open [snapshot (kv/new-snapshot kv)]
     (let [entity-tx (entity-tx snapshot db eid)]
-      (db/get-single-object object-store snapshot (:crux.db/content-hash entity-tx)))))
+      (datafy-entity db (db/get-single-object object-store snapshot (:crux.db/content-hash entity-tx))))))
 
 (defn- bounded-result-tuples->edn
   [tuples q]
