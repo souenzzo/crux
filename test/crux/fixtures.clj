@@ -30,12 +30,16 @@
                         :age       (rand-int 100)
                         :salary    (rand-int 100000)})
 
-(defn maps->tx-ops [maps ts]
-  (vec (for [m maps]
-         [:crux.tx/put
-          (:crux.db/id m)
-          m
-          ts])))
+(defn maps->tx-ops
+  ([maps]
+    (vec (for [m maps]
+            [:crux.tx/put (:crux.db/id m) m])))
+  ([maps ts]
+   (vec (for [m maps]
+          [:crux.tx/put
+           (:crux.db/id m)
+           m
+           ts]))))
 
 (def ^:dynamic *kv*)
 (def ^:dynamic *kv-backend* "crux.kv.rocksdb.RocksKv")
