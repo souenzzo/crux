@@ -6,6 +6,7 @@
 
 (def ^crux.api.ICruxAPI system
   (crux/start-standalone-system {:kv-backend "crux.kv.memdb.MemKv"
+                                 :event-log-dir "log/db-dir-1"
                                  :db-dir "data/db-dir-1"}))
 ;; end::start-system[]
 
